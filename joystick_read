@@ -9,19 +9,19 @@
 * VERTICAL JOYSTICK READ	      *
 *********************************
 v_joy		  lda	$ff23 			;Disable sound 
-		      anda	#$f7
-		      sta	$ff23
+		  anda	#$f7
+		  sta	$ff23
 
-		      lda	$ff01			;axis select
+		  lda	$ff01			;axis select
 	    	  ora	#$08
     		  sta	$ff01
 
 v_joy0		clrb
-		      lda	#$5c
-		      sta	$ff20
-		      lda	$ff00
-		      bpl	v_joy1
-		      incb
+		lda	#$5c
+		sta	$ff20
+		lda	$ff00
+		bpl	v_joy1
+		incb
       		lda	#$a0
       		sta	$ff20
       		lda	$ff00
@@ -32,23 +32,23 @@ v_joy1		rts
 *********************************
 * HORIZONTAL JOYSTICK READ	    *
 *********************************
-h_joy		  lda	$ff23 			; Disable sound 
-		      anda	#$f7
-		      sta	$ff23
+h_joy		lda	$ff23 			; Disable sound 
+		anda	#$f7
+		sta	$ff23
 
-		      lda	$ff01			;axis select
-		      anda	#$f7
+		lda	$ff01			;axis select
+		anda	#$f7
       		sta	$ff01
 
 h_joy0		clrb
-		      lda	#$5c
-		      sta	$ff20
-		      lda	$ff00
-		      bpl	h_joy1
+		lda	#$5c
+		sta	$ff20
+		lda	$ff00
+		bpl	h_joy1
       		incb
       		lda	#$a0
-		      sta	$ff20
-		      lda	$ff00
-		      bpl	h_joy1
+		sta	$ff20
+		lda	$ff00
+		bpl	h_joy1
       		incb
 h_joy1		rts
