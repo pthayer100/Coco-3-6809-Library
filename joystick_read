@@ -1,54 +1,55 @@
+
 *********************************	
-* 3 POINT JOYSTICK READ		      *
-* VERTICAL= DOWN/ CTR/ UP	      *
+* 3 POINT JOYSTICK READ		*
+* VERTICAL= DOWN/ CTR/ UP	*
 * HORIZONTAL= LEFT/ CTR/ RIGHT	*
-* BY PAUL THAYER		            *
+* BY PAUL THAYER		*
 *********************************
 
 *********************************
-* VERTICAL JOYSTICK READ	      *
+* VERTICAL JOYSTICK READ	*
 *********************************
-v_joy		  lda	$ff23 			;Disable sound 
-		  anda	#$f7
-		  sta	$ff23
-
-		  lda	$ff01			;axis select
-	    	  ora	#$08
-    		  sta	$ff01
-
-v_joy0		clrb
-		lda	#$5c
-		sta	$ff20
-		lda	$ff00
-		bpl	v_joy1
-		incb
-      		lda	#$a0
-      		sta	$ff20
-      		lda	$ff00
-      		bpl	v_joy1
-      		incb
-v_joy1		rts
-
-*********************************
-* HORIZONTAL JOYSTICK READ	    *
-*********************************
-h_joy		lda	$ff23 			; Disable sound 
+v_joy		lda	$ff23		;Disable sound 
 		anda	#$f7
 		sta	$ff23
 
-		lda	$ff01			;axis select
-		anda	#$f7
-      		sta	$ff01
+		lda	$ff01		;axis select
+		ora	#$08
+		sta	$ff01
 
-h_joy0		clrb
+v_joy0		ldb	#2		;2=up, 1=down, 0=dead zone		
+		lda	#$5c		;to raise/ lower dead zone range asjust this value
+		sta	$ff20		;send to PIA
+		lda	$ff00		;read from PIA
+		bpl	v_joy1		;check for flag and branch if set
+		decb			;b=1
+		lda	#$a0		;to raise/ lower dead zone range asjust this value
+		sta	$ff20
+		lda	$ff00
+		bpl	v_joy1
+		decb			;b=0
+v_joy1		rts
+
+*********************************
+* HORIZONTAL JOYSTICK READ	*
+*********************************
+h_joy		lda	$ff23 		; Disable sound 
+		anda	#$f7
+		sta	$ff23
+
+		lda	$ff01		;axis select
+		anda	#$f7
+		sta	$ff01
+
+h_joy0		ldb	#2
 		lda	#$5c
 		sta	$ff20
 		lda	$ff00
 		bpl	h_joy1
-      		incb
-      		lda	#$a0
+		decb
+		lda	#$a0
 		sta	$ff20
 		lda	$ff00
 		bpl	h_joy1
-      		incb
+		decb
 h_joy1		rts
