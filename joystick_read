@@ -5,6 +5,9 @@
 * HORIZONTAL= LEFT/ CTR/ RIGHT	*
 * BY PAUL THAYER		*
 *********************************
+*********************************
+* SEE BASIC CODE BELOW ASM	*
+*********************************
 
 *********************************
 * VERTICAL JOYSTICK READ	*
@@ -53,3 +56,18 @@ h_joy0		ldb	#2
 		bpl	h_joy1
 		decb
 h_joy1		rts
+
+*********************************
+* BASIC CODE			*
+*********************************
+*********************************
+* VERTICAL JOYSTICK READ	*
+*********************************
+B=JOYSTK(1)
+IF B<24 THEN JV=2 ELSE IF B>39 THEN JV=1 ELSE JV=0
+
+*********************************
+* HORIZONTAL JOYSTICK READ	*
+*********************************
+B=JOYSTK(0)
+IF B<24 THEN JH=2 ELSE IF B>39 THEN JH=1 ELSE JH=0
