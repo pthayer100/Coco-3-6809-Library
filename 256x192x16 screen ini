@@ -1,0 +1,14 @@
+*********************************
+*	SCREEN  INIT			            *
+*********************************
+    lda	#$44  		;CC3 GFX mode w/ MMU & FIRQ enabled
+		sta	$ff90     ;store to INI Register
+		ldd	#$801a		;$801a 256x192x16 (128x192 bytes)
+		std	$ff98     ;store to VMODE and VRESolution registers
+		ldd	#$3000		;viewport to page $30
+		std	$ff9d     ;store to Vertical offset MSB/LSB registers
+    
+*********************************
+*	BASIC CODE      	            *
+*********************************
+HSCREEN2:POKE&HFF98,&H80:POKE&HFF99,&H1A:POKE&HB9,&H80
