@@ -1,0 +1,144 @@
+;*****************************************
+;DISK SECTOR LOADER
+;BY SIMON JONASSEN
+;*****************************************
+;*****************************************
+; SETUP NMI HANDLER (ONLY WAY OUT)
+; NMI JUST RESETS STACK AND RETURNS TO 
+; PREVIOUS CALLER
+;*****************************************
+		ldx	#$326c			; LEAS 12,s
+		lda	#$39			; RTS
+		stx	$fefd			; install directly
+		sta	$feff			; to vector to save JMP
+;*****************************************
+; RESET THE FDC
+;*****************************************
+loader		ldy	#$ff48			; FDC command/status register
+		lda	#$d0			; force reset command
+		sta	,y			; store command
+wvs		lda	$ff03			; wait for the reset 
+		bpl	wvs			; to kick in
+		lda	$ff02			; (vsync)
+		lda	,y			; clear out status
+;*****************************************
+; TURN ON THE MOTOR
+;*****************************************
+		ldb	#%00101001		; motor on, drive 0, double density (no halt)
+		stb	$ff40			; disk control register (write only)
+;*****************************************
+; ALLOW MOTOR 1/4 SECOND TO SPIN UP
+;*****************************************
+		ldb	#15			; 15 loops
+wait0		lda	$ff03			; check for a vsync
+		bpl	wait0			; wait for it
+		lda	$ff02			; ack vsync
+		decb				; do again
+		bne	wait0	
+;*****************************************
+; MOVE HEAD TO TRACK #0 AS WE DON'T
+; KNOW WHERE WE ARE RIGHT NOW
+; (OUR DATA STARTS ON TRACK #0)
+;*****************************************
+		bsr	restore			; seek to track #0, NMI RETURNS HERE
+;*****************************************
+; GO LOAD THE SECTOR(S) WE WANT 
+; AND RESET THE CONTROLLER WHEN DONE
+;*****************************************
+load		ldx	#$e00			; x = load address !!!!
+redo		lda	#18			; reset our sector counter
+		sta	<again+1		; store it
+;*****************************************
+; READ SECTOR (TRACK)
+;*****************************************
+sect		lda	>$0300			; (sectmap) page aligned table of sectors
+		sta	$ff4a			; sector 1 to start
+again		ldb	#18			; done 18 sectors yet ?
+		bne	read
+;*****************************************
+; STEP THE HEAD INWARD FROM TRACK #0
+; (STEP IS FASTER THAN SEEK BECAUSE WE
+; DON'T HAVE TO CHECK TRACK# AND WE KNOW
+; WHERE WE ARE GOING)
+;*****************************************
+step		bsr	step_in			; step head in NMI RETURNS HERE
+		lda	1,y			; track register
+		cmpa	#10			; done 10 tracks ??
+		bne	redo
+;*****************************************
+; WE ARE DONE
+;*****************************************
+donedat		lda	#0
+		sta	$ff40			; turn off motors etc
+;*****************************************
+; GET OUTTA HERE
+;*****************************************
+poop		jmp	$e00			; go do our funky shite
+
+read		bsr	read_sector		; NMI RETURNS HERE
+
+;*****************************************
+; NEXT SECTOR IN TRACK PLEASE
+;*****************************************
+		inc	<sect+2			; fiddle the LSB of the sector pointer
+		dec	<again+1		; fiddle the sector counter
+		bra	sect			; loop back
+
+
+;*****************************************
+; THESE ARE THE ACTUAL DISK ROUTINES
+; THAT WE CALL FROM THE OTHER CODE
+;*****************************************
+; RESTORE HEAD TO TRACK #0
+;*****************************************
+restore		clr	,y			; issue RESTORE command (track #0)
+wait2		bra	wait2			; loop until NMI 
+;*****************************************
+; STEP HEAD INWARDS (12mS step rate)
+;*****************************************
+step_in		lda	#$5a			; $40=stepin, $10=update trackreg, $8=head loaded 
+		sta	,y			; issue STEPIN + TRACK UPDATE
+swait		bra	swait			; MAYBE
+;*****************************************
+; READ SECTOR WE WANT
+;*****************************************
+read_sector	ldd	#$8002			; read sector command ($80/$90 for autosector inc)
+		sta	,y			; issue FDC command  (possible delay needed after)
+waitdrq		bitb	,y			; B=2 =	DRQ bit in FDC status reg
+		beq	waitdrq			; wait until DRQ set (ready to read data)
+
+		ldb	#%10101001		; HALT, motor on, drive 0, double density
+		stb	$ff40			; DRQ will clear the halt flag
+;*****************************************
+; LOOP DA LOOP AND READ THE BYTES
+;*****************************************
+readloop	lda	$ff4b			; read data from FDC
+		sta	,x+			; store data in memory (LOOPIE)
+		bra	readloop		; loop until NMI
+
+		align	$10
+
+MYNMI		LDA	#0			; lives at $280
+		BEQ	NMIOUT
+RTIVEC		LDX	#$0000
+		STX	10,S
+		CLR	$0280+1
+NMIOUT		RTI
+
+		align	$100
+		
+sectmap		fcb	01,12,05,16,09,02,13,06,17,10,03,14,07,18,11,04,15,08
+		fcb	05,16,09,02,13,06,17,10,03,14,07,18,11,04,15,08,01,12
+		fcb	09,02,13,06,17,10,03,14,07,18,11,04,15,08,01,12,05,16
+		fcb	13,06,17,10,03,14,07,18,11,04,15,08,01,12,05,16,09,02
+		fcb	17,10,03,14,07,18,11,04,15,08,01,12,05,16,09,02,13,06
+		fcb	03,14,07,18,11,04,15,08,01,12,05,16,09,02,13,06,17,10
+		fcb	07,18,11,04,15,08,01,12,05,16,09,02,13,06,17,10,03,14
+		fcb	11,04,15,08,01,12,05,16,09,02,13,06,17,10,03,14,07,18
+		fcb	15,08,01,12,05,16,09,02,13,06,17,10,03,14,07,18,11,04
+		fcb	01,12,05,16,09,02,13,06,17,10,03,14,07,18,11,04,15,08
+
+
+
+
+
