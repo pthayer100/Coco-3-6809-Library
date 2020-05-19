@@ -1,0 +1,6 @@
+;vs_count0	lda	#12 ;delete ; to enable waiting multiple vsyncs
+vs_0		tst	$ff02		;wait for vsync
+vs_1		tst	$ff03
+		bpl	vs_1
+;		deca  ;delete ; to enable waiting multiple vsyncs
+;		bne	vs_0  ;delete ; to enable waiting multiple vsyncs
