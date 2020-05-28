@@ -29,7 +29,7 @@ v_joy0		ldb	#2		;2=up, 1=down, 0=dead zone
 		lda	#$a0		;to raise/ lower dead zone range asjust this value
 		sta	$ff20
 		lda	$ff00
-		bpl	v_joy1
+		bmi	v_joy1
 		decb			;b=0
 v_joy1		rts
 
@@ -53,7 +53,7 @@ h_joy0		ldb	#2
 		lda	#$a0
 		sta	$ff20
 		lda	$ff00
-		bpl	h_joy1
+		bmi	h_joy1
 		decb
 h_joy1		rts
 
