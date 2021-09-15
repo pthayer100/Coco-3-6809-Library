@@ -1,0 +1,2 @@
+apply.reset			lda	#1			;cold restart at reset or exit
+				        sta	$71
