@@ -1,12 +1,19 @@
 *********************************
 *	SCREEN  INIT			            *
 *********************************
-    lda	#$44  		;CC3 GFX mode w/ MMU & FIRQ enabled
-		sta	$ff90     ;store to INI Register
-		ldd	#$801a		;$801a 256x192x16 (128x192 bytes)
-		std	$ff98     ;store to VMODE and VRESolution registers
-		ldd	#$3000		;viewport to page $30
-		std	$ff9d     ;store to Vertical offset MSB/LSB registers
+enable.gfx.mode		equ	$44
+init.reg		equ	$ff90
+set.gfx.mode		equ	$801a
+vmode.reg		equ	$ff98
+viewport.value		equ	$c000
+viewport.reg		equ	$ff9d
+
+    			lda	#$enable.gfx.mode	  	;CC3 GFX mode w/ MMU & FIRQ enabled
+			sta	init.reg			;store to INI Register
+			ldd	#set.gfx.mode			;$801a 256x192x16 (128x192 bytes)
+			std	vmode.reg			;store to VMODE and VRESolution registers
+			ldd	#viewport.value			;viewport to page $30
+			std	viewport.reg			;store to Vertical offset MSB/LSB registers
     
 *********************************
 *	BASIC CODE      	            *
