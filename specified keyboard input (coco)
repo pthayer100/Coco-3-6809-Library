@@ -1,0 +1,51 @@
+*** KEYBOARD CHECK ***
+*** SPECIFIC   KEY ***
+
+*** Some keys require a masking of the keyboard input first ***
+mask.key.input			  lda	  #$ff			            ;load masking value
+				              sta	  write.pia		          ;write to pia
+				              lda	  read.pia		          ;read results from pia
+				              suba	#$ff			            ;result of SUB is 0 if no buttons pressed
+				              bne	                        ;bne if any 1 of 4 buttons is pressed
+                      beq                         ;beq if no buttons are pressed
+
+
+write.pia			        equ	$ff02
+read.pia			        equ	$ff00
+column				        equ	$xx		                  ;see keyboard matrix
+row				            equ	$xx		                  ;see keyboard matrix
+keyboard.mask.value		equ	$7f
+
+check.key			        lda	  #column			          ;load the column number of the key you want
+				              sta	  write.pia		          ;write it to the pia
+				              lda	  read.pia		          ;read result from the pia
+				              anda	#keyboard.mask.value	;mask off joystick comparison bit
+				              cmpa	#row			            ;was it the correct row?
+				              beq				                  ;BEQ if key is down OR
+				              bne				                  ;BNE if key is up
+
+
+Column values: 			            $7f,$bf,$df,$ef,$f7,$fb,$fd,$fe
+Row values (with mask applied):	$7e,$7d,$7b,$77,$6f,$5f,$3f
+
+Keyboard Matrix Column #	| Col. 1 | Col. 2 | Col. 3 | Col 4. | Col. 5 | Col. 6 | Col. 7 | Col. 8 |
+Write to $FF02 Value		  |  $7F   |  $BF   |  $DF   |  $EF   |  $F7   |  $FB   |  $FD   |  $FE   |
+=========================================================================================================
+Row 1		                  |	$7E	|   G    |   F    |   E    |   D    |   C    |   B    |   A    |   @    |
+=========================================================================================================
+Row 2		                  |	$7D	|   O    |   N    |   M    |   L    |   K    |   J    |   I    |   H    |
+=========================================================================================================
+Row 3		                  |	$7B	|   W	 |   V	  |   U	   |   T    |   S    |   R    |	  Q    |   P	|
+=========================================================================================================
+Row 4		                  |	$77	| SPACE	 |  RIGHT |  LEFT  |  DOWN  |   UP   |   Z    |   Y    |   X	|
+=========================================================================================================
+Row 5		                  |	$6f	|  '/7   |   &/6  |   %/5  |   $/4  |   #/3  |   "/2  |   !/1  |   0    |
+=========================================================================================================
+Row 6		                  |	$5f	|   ?//	 |   >/.  |   =/-  |   </,  |   +/;  |   */:  |   )/9  |   (/8	|
+=========================================================================================================
+Row 7		                  |	$3f	| SHIFT	 |  F2    |  F1    | CTRL   | ALT    | BREAK  | CLEAR  | ENTER  |
+=========================================================================================================
+Row #		| $FF00 return  |
+        | Value to check|
+		    | after masking	|
+		    | with AND $7f	|
