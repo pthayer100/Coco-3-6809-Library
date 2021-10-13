@@ -5,9 +5,9 @@
 mask.key.input			  lda	  #$ff			;load masking value
 				  sta	  write.pia		;write to pia
 				  lda	  read.pia		;read results from pia
-				  suba	  #$ff			;result of SUB is 0 if no buttons pressed
-				  bne	                        ;bne if any 1 of 4 buttons is pressed
-                      		  beq                         	;beq if no buttons are pressed
+				  bita	  #$07			;check for any joystick button presses
+				  beq	                        ;beq if any 1 of 4 buttons is pressed
+                      		  bne                         	;bne if no buttons are pressed
 
 
 write.pia			        equ	$ff02
