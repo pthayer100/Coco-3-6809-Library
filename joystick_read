@@ -8,55 +8,98 @@
 *********************************
 * SEE BASIC CODE BELOW ASM	*
 *********************************
+dac			equ	$ff23
+axis_register		equ	$ff01
+x_axis_value		equ	$f7
+y_axis_value		equ	$08
+pia_write		equ	$ff20
+pia_read		equ	$ff00
+left_value		equ	$2c
+right_value		equ	$d0
+up_value		equ	$2c
+down_value		equ	$d0
+left_flag		equ	1
+right_flag		equ	2
+up_flag			equ	4
+down_flag		equ	8
+sound_disable		equ	$f7
 
-*********************************
-* VERTICAL JOYSTICK READ	*
-*********************************
-v_joy		lda	$ff23		;Disable sound 
-		anda	#$f7
-		sta	$ff23
+joy.in			lda	dac			;disable sound
+			anda	#sound_disable
+			sta	dac
+			
+			lda	axis_register		;switch to X axis
+			anda	#x_axis_value
+			sta	axis_register
+			
+			nop				;delay for axis switch
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			
+			clrb				;clear joystick output value
+			lda	#left_value		;load left voltage value to check
+			sta	pia_write		;write value to PIA
+			lda	pia_read		;read result from PIA
+			bmi	h.joy			;check for right if not left
+			orb	#left_flag		;set bit flag for left
+			bra	v.joy			;now check vertical axis
+			
+h.joy			lda	#right_value		;load right voltage value to check
+			sta	pia_write		;write value to PIA
+			lda	pia_read		;read result from PIA
+			bpl	v.joy			;do vertical axis if in dead zone
+			orb	#right_flag		;set bit flag for right
 
-		lda	$ff01		;axis select
-		ora	#$08
-		sta	$ff01
+v.joy			lda	axis_register		;switch to Y axis
+			anda	#y_axis_value
+			sta	axis_register
+			
+			nop				;delay for axis switch
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			nop
+			
+			lda	#up_value		;load up voltage value to check
+			sta	pia_write		;write value to PIA
+			lda	pia_read		;read result from PIA
+			bmi	v.joy0			;check for down if not up
+			orb	#up_flag		;set bit flag for up
+			bra	joy.set			;save output to variable and exit
+			
+v.joy0			lda	#down_value		;load downvoltage value to check
+			sta	pia_write		;write value to PIA
+			lda	pia_read		;read result from PIA
+			bpl	joy.set			;save output to variable and exit
+			orb	#down_flag		;set bit flag for down
 
-v_joy0		ldb	#2		;2=up, 1=down, 0=dead zone		
-		lda	#$5c		;to raise/ lower dead zone range asjust this value
-		sta	$ff20		;send to PIA
-		lda	$ff00		;read from PIA
-		bpl	v_joy1		;check for flag and branch if set
-		decb			;b=1
-		lda	#$a0		;to raise/ lower dead zone range asjust this value
-		sta	$ff20
-		lda	$ff00
-		bmi	v_joy1
-		decb			;b=0
-v_joy1		rts
-
-*********************************
-* HORIZONTAL JOYSTICK READ	*
-*********************************
-h_joy		lda	$ff23 		; Disable sound 
-		anda	#$f7
-		sta	$ff23
-
-		lda	$ff01		;axis select
-		anda	#$f7
-		sta	$ff01
-
-h_joy0		ldb	#2
-		lda	#$5c
-		sta	$ff20
-		lda	$ff00
-		bpl	h_joy1
-		decb
-		lda	#$a0
-		sta	$ff20
-		lda	$ff00
-		bmi	h_joy1
-		decb
-h_joy1		rts
-
+joy.set			stb	joy.out			;save output to variable
+			rts				;exit
+			
 *********************************
 * BASIC CODE			*
 *********************************
