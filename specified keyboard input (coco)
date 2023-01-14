@@ -16,12 +16,22 @@ column				        equ	$xx		                  ;see keyboard matrix
 row				        equ	$xx		                  ;see keyboard matrix
 keyboard.mask.value			equ	$7f
 
-check.key			        lda	#column			;load the column number of the key you want
-				        sta	write.pia		;write it to the pia
-				        lda	read.pia		;read result from the pia
-				        anda	#keyboard.mask.value	;mask off joystick comparison bit
-				        cmpa	#row			;was it the correct row?
-				        beq				;BEQ if key is down OR
+check.key			        lda	#column			;load the column number of the key you want	[2]
+				        sta	write.pia		;write it to the pia				[5]
+				        lda	read.pia		;read result from the pia			[5]
+				        anda	#keyboard.mask.value	;mask off joystick comparison bit		[2]
+				        cmpa	#row			;was it the correct row?			[2]
+				        beq				;BEQ if key is down OR				[3]		[19 each key]
+				        bne				;BNE if key is up
+					
+check.key				ldx	#write.pia		;point X to PIA for writing			[3]
+					ldu	#read.pia		;point U to PIA for reading			[3]		[6 overhead]
+					lda	#column			;load column value				[2]
+					sta	,x			;write to PIA					[4]
+					lda	,u			;read result from PIA				[4]
+					anda	#keyboard.mask.value	;mask joytick comparison bit			[2]
+					cmpa	#row			;was it the correct row?			[2]
+				        beq				;BEQ if key is down OR				[3]		[17 each key]
 				        bne				;BNE if key is up
 
 
