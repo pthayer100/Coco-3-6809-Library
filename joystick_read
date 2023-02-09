@@ -28,7 +28,7 @@ joy.in			lda	dac			;disable sound
 			anda	#sound_disable
 			sta	dac
 			
-			lda	axis_register		;switch to X axis
+			lda	axis_register		;switch to X axis - note this also disables sound
 			anda	#x_axis_value
 			sta	axis_register
 			
@@ -64,7 +64,7 @@ h.joy			lda	#right_value		;load right voltage value to check
 			orb	#right_flag		;set bit flag for right
 
 v.joy			lda	axis_register		;switch to Y axis
-			anda	#y_axis_value
+			ora	#y_axis_value
 			sta	axis_register
 			
 			nop				;delay for axis switch
