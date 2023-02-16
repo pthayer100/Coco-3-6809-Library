@@ -2,21 +2,23 @@
 *** SPECIFIC   KEY ***
 
 *** Some keys require a masking of the keyboard input first ***
-mask.key.input			  lda	  #$ff			;load masking value
-				  sta	  write.pia		;write to pia
-				  lda	  read.pia		;read results from pia
-				  bita	  #$07			;check for any joystick button presses
-				  beq	                        ;beq if any 1 of 4 buttons is pressed
-                      		  bne                         	;bne if no buttons are pressed
+mask.key.input			  	lda	  #$ff			;load masking value
+				  	sta	  write.pia		;write to pia
+				  	lda	  read.pia		;read results from pia
+				  	bita	  #$07			;check for any joystick button presses
+					anda	  #$0f			;mask off all bits, but the joystick buttons
+					cmpa	  #$0f			;check for any joystick buttons
+				  	beq	                        ;beq if no buttons are pressed
+                      		  	bne                         	;bne if any of 4 buttons are pressed
 
 
 write.pia			        equ	$ff02
 read.pia			        equ	$ff00
-column				        equ	$xx		                  ;see keyboard matrix
-row				        equ	$xx		                  ;see keyboard matrix
+column				        equ	$xx		        ;see keyboard matrix
+row				        equ	$xx		        ;see keyboard matrix
 keyboard.mask.value			equ	$7f
 
-check.key			        lda	#column			;load the column number of the key you want	[2]
+check.key.extended		        lda	#column			;load the column number of the key you want	[2]
 				        sta	write.pia		;write it to the pia				[5]
 				        lda	read.pia		;read result from the pia			[5]
 				        anda	#keyboard.mask.value	;mask off joystick comparison bit		[2]
@@ -24,10 +26,10 @@ check.key			        lda	#column			;load the column number of the key you want	[2
 				        beq				;BEQ if key is down OR				[3]		[19 each key]
 				        bne				;BNE if key is up
 					
-check.key				ldx	#write.pia		;point X to PIA for writing			[3]
+check.key.indexed			ldy	#write.pia		;point X to PIA for writing			[3]
 					ldu	#read.pia		;point U to PIA for reading			[3]		[6 overhead]
 					lda	#column			;load column value				[2]
-					sta	,x			;write to PIA					[4]
+					sta	,y			;write to PIA					[4]
 					lda	,u			;read result from PIA				[4]
 					anda	#keyboard.mask.value	;mask joytick comparison bit			[2]
 					cmpa	#row			;was it the correct row?			[2]
