@@ -1,2 +1,14 @@
+*** @ somepoint in system init
 apply.reset			lda	#1			;cold restart at reset or exit
 				        sta	$71
+
+*** when you actually do the reset/ program end
+				lda	#$39			;rts opcode
+				sta	origin			;store at your origin so it cannot be executed again
+				sta	$ffd8			;slow CPU
+				clr	$ff91			;clear init register 1
+				orcc	#$50			;disable interrupts
+				lda	#$0a			;init register 0 setting value
+				sta	$ff90			;set init register 0
+				clr	$ffde			;switch system ROM's into memory
+				jmp	$c000			;go to DECB
